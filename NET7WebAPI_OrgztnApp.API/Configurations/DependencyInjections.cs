@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
 using NET7WebAPI_OrgztnApp.API.Swagger;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
@@ -30,7 +31,7 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
                 options.AssumeDefaultVersionWhenUnspecified = true;
 
                 ////query string custom versioning
-                //options.ApiVersionReader = new QueryStringApiVersionReader("organisationapptest-api-version");
+                //options.ApiVersionReader = new QueryStringApiVersionReader("organisationapp-api-version");
 
                 ////header versioning
                 //options.ApiVersionReader = new HeaderApiVersionReader("X-API-Version");
@@ -43,8 +44,8 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
                 options.GroupNameFormat = "'v'VVV";
 
                 //DEFAULT VALUE IS FALSE
-                //if set TRUE, the API Version parameters should be substitute in route templates
-                //     [Route("api/v{v:apiVersion}/[controller]")]
+                //if set TRUE, the API Version parameters in your controller should be substitute in route templates
+                // like this:    [Route("api/v{v:apiVersion}/[controller]")]
                 options.SubstituteApiVersionInUrl = true;
             });
 

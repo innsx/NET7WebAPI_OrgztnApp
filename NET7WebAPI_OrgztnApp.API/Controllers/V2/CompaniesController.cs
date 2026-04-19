@@ -6,6 +6,7 @@ using NET7WebAPI_OrgztnApp.Domain.Commons.Company.Models;
 
 namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
 {
+    //[Route("api/[controller]")]
     [Route("api/v{v:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
     [ApiController]
@@ -94,6 +95,12 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             _unitOfWork.Commits_Transaction_N_Close_DbConnection_InvokeDispose();
 
             return Ok(companyToDelete);
+        }
+
+        [HttpGet("get-company-counts")]
+        public async Task<IActionResult> GetCompanyCounts()
+        {
+            return Ok(await _unitOfWork.Companies.GetTotalRecordCountsAsync());
         }
     }
 }

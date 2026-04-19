@@ -16,6 +16,7 @@ builder.Services
 
 var app = builder.Build();
 
+//registering IApiVersionDescriptionProvider we injected in ConfigureSwaggerOptions class
 var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
 // Configure the HTTP request pipeline.
