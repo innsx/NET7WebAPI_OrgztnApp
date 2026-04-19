@@ -4,9 +4,10 @@ using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Employees.Models;
 
-namespace NET7WebAPI_OrgztnApp.API.Controllers
+namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
 {
-    [Route("api/[controller]")]
+    [Route("api/v{v:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [ApiController]
     public class EmployeesController : ControllerBase
     {

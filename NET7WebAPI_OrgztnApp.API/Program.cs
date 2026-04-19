@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using NET7WebAPI_OrgztnApp.API.Configurations;
 using NET7WebAPI_OrgztnApp.Application.Configurations;
 using NET7WebAPI_OrgztnApp.Infrastructure.Configurations;
@@ -15,11 +16,23 @@ builder.Services
 
 var app = builder.Build();
 
+var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+
+    //app.UseSwaggerUI();
+    //adding more Swagger UI Options
+    app.UseSwaggerUI(options =>
+    {
+        foreach (var description in provider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+        }
+    });
+
 }
 
 app.UseHttpsRedirection();

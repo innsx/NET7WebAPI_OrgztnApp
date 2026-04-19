@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using NET7WebAPI_OrgztnApp.Application.Common.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Company.Models;
-using NET7WebAPI_OrgztnApp.Domain.Commons.Utilities;
 
-namespace NET7WebAPI_OrgztnApp.API.Controllers
+namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
 {
-    [Route("api/[controller]")]
+    [Route("api/v{v:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     [ApiController]
     public class CompaniesController : ControllerBase
     {
