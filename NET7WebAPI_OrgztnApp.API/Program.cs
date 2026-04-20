@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using NET7WebAPI_OrgztnApp.API.Configurations;
 using NET7WebAPI_OrgztnApp.Application.Configurations;
 using NET7WebAPI_OrgztnApp.Infrastructure.Configurations;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +31,14 @@ if (app.Environment.IsDevelopment())
     {
         foreach (var description in provider.ApiVersionDescriptions)
         {
-            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
+                description.GroupName.ToUpperInvariant()
+            );
+
+            options.RoutePrefix = "api/documentation"; //Adds a PREFIX to SWAGGER's ROUTE
+            options.DefaultModelExpandDepth(2);
+            options.DocExpansion(DocExpansion.List);  //Options: List(set as DEFAULT), Full, None
+            options.DisplayRequestDuration();
         }
     });
 

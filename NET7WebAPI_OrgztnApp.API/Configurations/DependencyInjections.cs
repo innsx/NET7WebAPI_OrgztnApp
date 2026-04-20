@@ -5,6 +5,7 @@ using NET7WebAPI_OrgztnApp.API.Swagger;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Infrastructure.Persistences.Repositories;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace NET7WebAPI_OrgztnApp.API.Configurations
 {
@@ -17,7 +18,20 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            //services.AddSwaggerGen();
+
+            //add these lines to 
+            services.AddSwaggerGen(options =>
+            {
+                //& PROVIDES/SPECIFY the PATH to our XML file in the location of our Organisation Project:
+                //G:\Repos\NET7WebAPI_OrgztnApp\NET7WebAPI_OrgztnApp.API\bin\Debug\net7.0
+                options.IncludeXmlComments(
+                    Path.Combine(
+                        AppContext.BaseDirectory, 
+                        $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"
+                    )
+                );
+            });
 
             services.AddApiVersioning(options =>
             {

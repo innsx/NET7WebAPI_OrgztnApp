@@ -2,6 +2,7 @@
 using NET7WebAPI_OrgztnApp.Application.Common.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
+using NET7WebAPI_OrgztnApp.Application.Commons.Utilities;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Employees.Models;
 
 namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
@@ -9,6 +10,7 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
     [Route("api/v{v:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     [ApiController]
+    [Produces("application/json")]
     public class EmployeesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -18,19 +20,36 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
             _unitOfWork = unitOfWork;
         }
 
-        [HttpGet("get-employees")]
+        /// <summary>
+        /// This endpoint gets all the Employees in the system.
+        /// </summary>
+        /// <respone code="200">Returns paged list of all Employees in the system</respone>
+        [ProducesResponseType(typeof(PageList<EmployeeResponse>), 200)]
+        [HttpGet("employees")]
         public async Task<IActionResult> GetEmployees([FromQuery] EmployeeQueryParameters employeeQueryParameters)
         {
             return Ok(await _unitOfWork.Employees.GetEmployeesByQueryAsync(employeeQueryParameters));
         }
 
 
-        [HttpGet("get-employee-by-id/{id:length(22)}")]
+        /// <summary>
+        /// This endpoint gets a particular Employee from the system based on the provided Employee id.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <response code="200">Gets a Employee successfully.</response>
+        /// <response code="404">Could not find the Employee.</response>
+        /// <returns>Company</returns>
+        [HttpGet("employee/{id:length(22)}")]
         public async Task<IActionResult> GetEmployeeById(string id)
         {
             return Ok(await _unitOfWork.Employees.GetRecordByIdAsync(id));
         }
 
+        /// <summary>
+        /// This endpoint Adds an Employee in the system.
+        /// </summary>
+        /// <param name="employeeRequest">**EmployeeRequest**</param>
+        /// <response code="201">Adds an Employee successfullly</response>
         [HttpPost("add-employee")]
         public async Task<IActionResult> AddEmployee([FromBody] EmployeeRequest employeeRequest)
         {
@@ -58,6 +77,12 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
             return NoContent();
         }
 
+        /// <summary>
+        /// This endpoint Updates a Employee in the system.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <param name="employeeRequest">**EmployeeResponse**</param>
+        /// <response code="201">Updates a Employee successfullly</response>
         [HttpPut("update-employee/{id:length(22)}")]
         public async Task<IActionResult> UpdateEmployee(string id, [FromBody] EmployeeRequest employeeRequest)
         {
@@ -91,6 +116,13 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
             return NoContent();
         }
 
+
+        /// <summary>
+        /// This SoftDelete of an Employee in the system.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <param name="isDeleteAssociations">**Boolean**</param>
+        /// <response code="201">SoftDeletes an Employee successfullly</response>
         [HttpDelete("delete-employee/{id:length(22)}")]
         public async Task<IActionResult> DeleteEmployee(string id, [FromBody] bool deleteAssociations)
         {

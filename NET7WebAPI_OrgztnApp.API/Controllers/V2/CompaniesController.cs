@@ -2,14 +2,15 @@
 using NET7WebAPI_OrgztnApp.Application.Common.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
+using NET7WebAPI_OrgztnApp.Application.Commons.Utilities;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Company.Models;
 
 namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
 {
-    //[Route("api/[controller]")]
     [Route("api/v{v:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
     [ApiController]
+    [Produces("application/json")]
     public class CompaniesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -19,6 +20,11 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// This endpoint gets all the companies in the system.
+        /// </summary>
+        /// <respone code="200">Returns paged list of all companies in the system</respone>
+        [ProducesResponseType(typeof(PageList<CompanyResponse>), 200)]
         [HttpGet("companies")]
         public async Task<IActionResult> GetCompanies([FromQuery] CompanyQueryParameters companyQueryParameters)
         {
@@ -26,7 +32,14 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         }
 
 
-        [HttpGet("get-company-by-id/{id:length(22)}")]
+        /// <summary>
+        /// This endpoint gets a particular company from the system based on the provided copany id.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <response code="200">Gets a comapny successfully.</response>
+        /// <response code="404">Could not find the company.</response>
+        /// <returns>Company</returns>
+        [HttpGet("company/{id:length(22)}")]
         public async Task<ActionResult<Company>> GetCompanyById(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -39,6 +52,12 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             return Ok(company);
         }
 
+
+        /// <summary>
+        /// This endpoint Add a company in the system.
+        /// </summary>
+        /// <param name="companyRequest">**CreateCompanyRequest**</param>
+        /// <response code="201">Adds a company successfullly</response>
         [HttpPost("add-company")]
         public async Task<IActionResult> AddCompany([FromBody]CompanyRequest companyRequest)
         {
@@ -59,6 +78,13 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             return CreatedAtAction("GetCompanyById", new { id = companyAddedId}, companyRequest);
         }
 
+
+        /// <summary>
+        /// This endpoint Update a company in the system.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <param name="companyRequest">**CreateCompanyRequest**</param>
+        /// <response code="201">Updates a company successfullly</response>
         [HttpPut("update-company/{id:length(22)}")]
         public async Task<IActionResult> UpdateCompany(string id, [FromBody] CompanyRequest companyRequest)
         {
@@ -80,6 +106,13 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             return Ok(companyToUpdate);
         }
 
+
+        /// <summary>
+        /// This endpoint SoftDelete of a company in the system.
+        /// </summary>
+        /// <param name="id">**string**</param>
+        /// <param name="isDeleteAssociations">**CompanyRequest**</param>
+        /// <response code="201">SoftDeletes a company successfullly</response>
         [HttpDelete("delete-company/{id:length(22)}")]
         public async Task<IActionResult> DeleteCompany(string id, bool isDeleteAssociations)
         {
@@ -97,7 +130,12 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
             return Ok(companyToDelete);
         }
 
-        [HttpGet("get-company-counts")]
+
+        /// <summary>
+        /// This endpoint counts and returns total company records in the system.
+        /// </summary>
+        /// <respone code="200">Returns an integer as Total Comany Counts</respone>
+        [HttpGet("company-counts")]
         public async Task<IActionResult> GetCompanyCounts()
         {
             return Ok(await _unitOfWork.Companies.GetTotalRecordCountsAsync());
