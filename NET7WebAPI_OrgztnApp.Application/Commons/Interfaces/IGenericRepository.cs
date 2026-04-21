@@ -17,6 +17,6 @@ namespace NET7WebAPI_OrgztnApp.Application.Commons.Interfaces
         Task<bool> UpdateRecordAsync(TEntity entity);
         Task SoftDeleteRecordAsync(string id, bool softDeleteFromRelatedChildTable = false);
         Task<int> GetTotalRecordCountsAsync();
-        Task<bool> IsRecordExistedAsync(string distinguishingUniqueKeyValue); 
+        Task<bool> IsExistedAsync(string distinguishingUniqueKeyValue); 
     }
 }

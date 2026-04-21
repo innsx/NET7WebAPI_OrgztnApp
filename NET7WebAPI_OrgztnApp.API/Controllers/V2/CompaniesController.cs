@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NET7WebAPI_OrgztnApp.Application.Common.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
+using NET7WebAPI_OrgztnApp.Application.Commons.Execeptions;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Application.Commons.Utilities;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Company.Models;
@@ -28,7 +29,14 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         [HttpGet("companies")]
         public async Task<IActionResult> GetCompanies([FromQuery] CompanyQueryParameters companyQueryParameters)
         {
-            return Ok(await _unitOfWork.Companies.GetCompaniesByQueryAsync(companyQueryParameters));
+            var companies = await _unitOfWork.Companies.GetCompaniesByQueryAsync(companyQueryParameters);
+
+            if (companies == null)
+            {
+                throw new Exception("Error exception: no records returned.");
+            }
+
+            return Ok(companies);
         }
 
 
@@ -42,12 +50,12 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         [HttpGet("company/{id:length(22)}")]
         public async Task<ActionResult<Company>> GetCompanyById(string id)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                return BadRequest("Id is null");
-            }
-
             var company = await _unitOfWork.Companies.GetRecordByIdAsync(id);
+
+            if (company == null)
+            {
+                throw new NotFoundException($"Company with id: '{id}' does not existed.");
+            }
 
             return Ok(company);
         }
@@ -56,14 +64,15 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         /// <summary>
         /// This endpoint Add a company in the system.
         /// </summary>
-        /// <param name="companyRequest">**CreateCompanyRequest**</param>
+        /// <param name="companyRequest">**CompanyRequest**</param>
         /// <response code="201">Adds a company successfullly</response>
         [HttpPost("add-company")]
         public async Task<IActionResult> AddCompany([FromBody]CompanyRequest companyRequest)
         {
-            if (companyRequest == null)
+            if (await _unitOfWork.Companies.IsExistedAsync(companyRequest.Name) == true)
             {
-                return BadRequest("Company is null");
+                //check if the request Company Name is NOT UNIQUE
+                throw new DuplicateNameException($"Company with Name '{companyRequest.Name}' is ALREADY EXISTED.");
             }
 
             var companyAddedId = await _unitOfWork.Companies.AddRecordAsync(
@@ -83,21 +92,21 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         /// This endpoint Update a company in the system.
         /// </summary>
         /// <param name="id">**string**</param>
-        /// <param name="companyRequest">**CreateCompanyRequest**</param>
+        /// <param name="companyRequest">**CompanyRequest**</param>
         /// <response code="201">Updates a company successfullly</response>
         [HttpPut("update-company/{id:length(22)}")]
         public async Task<IActionResult> UpdateCompany(string id, [FromBody] CompanyRequest companyRequest)
         {
-            if (companyRequest == null || id == null)
-            {
-                return BadRequest();
-            }
-
             var companyToUpdate = await _unitOfWork.Companies.GetRecordByIdAsync(id);
+
+            if (companyToUpdate == null)
+            {
+                throw new NotFoundException($"Company with id: '{id}' does not existed.");
+            }
 
             companyToUpdate.Name = companyRequest.Name;
             companyToUpdate.Address = companyRequest.Address;
-            companyToUpdate.Country = companyRequest.Country;
+            companyToUpdate.Country = companyRequest.Country; 
 
             _unitOfWork.Opens_DbConnection_BeginTransaction();
             await _unitOfWork.Companies.UpdateRecordAsync(companyToUpdate);
@@ -114,14 +123,14 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V2
         /// <param name="isDeleteAssociations">**CompanyRequest**</param>
         /// <response code="201">SoftDeletes a company successfullly</response>
         [HttpDelete("delete-company/{id:length(22)}")]
-        public async Task<IActionResult> DeleteCompany(string id, bool isDeleteAssociations)
+        public async Task<IActionResult> DeleteCompany(string id, [FromQuery]bool isDeleteAssociations)
         {
-            if (id == null)
-            {
-                return BadRequest();
-            }
-
             var companyToDelete = await _unitOfWork.Companies.GetRecordByIdAsync(id);
+
+            if (companyToDelete == null)
+            {
+                throw new NotFoundException($"Company with id: '{id}' does not existed.");
+            }
 
             _unitOfWork.Opens_DbConnection_BeginTransaction();
             await _unitOfWork.Companies.SoftDeleteRecordAsync(id, isDeleteAssociations);

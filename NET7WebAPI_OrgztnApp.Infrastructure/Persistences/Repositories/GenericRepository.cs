@@ -160,7 +160,7 @@ namespace NET7WebAPI_OrgztnApp.Infrastructure.Persistences.Repositories
             }
         }
 
-        public async Task<bool> IsRecordExistedAsync(string distinguishingUniqueKeyValue)
+        public async Task<bool> IsExistedAsync(string distinguishingUniqueKeyValue)
         {
             var parameters = new DynamicParameters();
             parameters.Add("tableName", typeof(TEntity).GetDbTableName(), DbType.String, ParameterDirection.Input, size: 50);

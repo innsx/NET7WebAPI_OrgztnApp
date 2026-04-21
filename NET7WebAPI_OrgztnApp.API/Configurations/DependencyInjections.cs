@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
+using NET7WebAPI_OrgztnApp.API.Commons;
 using NET7WebAPI_OrgztnApp.API.Swagger;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Infrastructure.Persistences.Repositories;
@@ -35,7 +37,9 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
 
             services.AddApiVersioning(options =>
             {
-                //enable ApiVersions
+                
+                // -----------------  OPTIONS: URL Versioning  ----------------------------------
+                //enable ApiVersions and If set to "TRUE", the response contains service API version compatibility information
                 options.ReportApiVersions = true;
 
                 //DEFAULT API version is SET to version 1
@@ -44,10 +48,12 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
                 //take the 1st version, if NOT Specified a version at this line “options.DefaultApiVersion…”
                 options.AssumeDefaultVersionWhenUnspecified = true;
 
+                //----------------- OPTIONS: query string custom versioning ---------------------------------
                 ////query string custom versioning
                 //options.ApiVersionReader = new QueryStringApiVersionReader("organisationapp-api-version");
 
-                ////header versioning
+                //----------------- OPTIONS: header versioning ---------------------------------
+                //header versioning
                 //options.ApiVersionReader = new HeaderApiVersionReader("X-API-Version");
             });
 
@@ -68,9 +74,11 @@ namespace NET7WebAPI_OrgztnApp.API.Configurations
             //  we MUST REGISTER "<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>()"
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-
             //injecting IUnitOfWork,UnitOfWork into the DI Container
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            //REGISTERING CustomProblemDetailsFactory with injecting System's ProblemDetailsFactory class
+            services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
 
             return services;
         }

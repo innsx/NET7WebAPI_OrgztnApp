@@ -35,7 +35,7 @@ if (app.Environment.IsDevelopment())
                 description.GroupName.ToUpperInvariant()
             );
 
-            options.RoutePrefix = "api/documentation"; //Adds a PREFIX to SWAGGER's ROUTE
+            //options.RoutePrefix = "api/documentation"; //Adds a PREFIX to SWAGGER's ROUTE
             options.DefaultModelExpandDepth(2);
             options.DocExpansion(DocExpansion.List);  //Options: List(set as DEFAULT), Full, None
             options.DisplayRequestDuration();
@@ -43,6 +43,13 @@ if (app.Environment.IsDevelopment())
     });
 
 }
+
+// we will add this line as a middleware PIPELINE
+// & every time an ERROR occurred,  
+// ErrorsController.cs class’s Error( ) Endpoint will get HITTED
+// & the Error( ) will catch ALL EXCEPTIONS & LOGGED THOSE EXCEPTIONS
+app.UseExceptionHandler("/Errors");
+
 
 app.UseHttpsRedirection();
 
