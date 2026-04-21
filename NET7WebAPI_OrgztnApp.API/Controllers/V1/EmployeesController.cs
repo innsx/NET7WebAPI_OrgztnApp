@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NET7WebAPI_OrgztnApp.Application.Common.DTOs;
 using NET7WebAPI_OrgztnApp.Application.Commons.DTOs;
+using NET7WebAPI_OrgztnApp.Application.Commons.Execeptions;
 using NET7WebAPI_OrgztnApp.Application.Commons.Interfaces;
 using NET7WebAPI_OrgztnApp.Application.Commons.Utilities;
 using NET7WebAPI_OrgztnApp.Domain.Commons.Employees.Models;
@@ -19,7 +20,7 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         {
             _unitOfWork = unitOfWork;
         }
-
+          
         /// <summary>
         /// This endpoint gets all the Employees in the system.
         /// </summary>
@@ -28,7 +29,14 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         [HttpGet("employees")]
         public async Task<IActionResult> GetEmployees([FromQuery] EmployeeQueryParameters employeeQueryParameters)
         {
-            return Ok(await _unitOfWork.Employees.GetEmployeesByQueryAsync(employeeQueryParameters));
+            var employees = await _unitOfWork.Employees.GetEmployeesByQueryAsync(employeeQueryParameters);
+
+            if (employees == null)
+            {
+                throw new Exception("Error exception: no records returned.");
+            }
+
+            return Ok(employees);
         }
 
 
@@ -42,7 +50,14 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         [HttpGet("employee/{id:length(22)}")]
         public async Task<IActionResult> GetEmployeeById(string id)
         {
-            return Ok(await _unitOfWork.Employees.GetRecordByIdAsync(id));
+            var employee = await _unitOfWork.Employees.GetRecordByIdAsync(id);
+
+            if (employee == null)
+            {
+                throw new NotFoundException($"Employee with id: '{id}' does not existed.");
+            }
+
+            return Ok(employee);
         }
 
         /// <summary>
@@ -53,9 +68,10 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         [HttpPost("add-employee")]
         public async Task<IActionResult> AddEmployee([FromBody] EmployeeRequest employeeRequest)
         {
-            if (employeeRequest == null)
+            if (await _unitOfWork.Employees.IsExistedAsync(employeeRequest.Name) == true)
             {
-                return BadRequest();
+                //check if the request Company Name is NOT UNIQUE
+                throw new DuplicateNameException($"Employee with Name '{employeeRequest.Name}' is ALREADY EXISTED.");
             }
 
             _unitOfWork.Opens_DbConnection_BeginTransaction();
@@ -67,14 +83,15 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
                     Age = employeeRequest.Age,
                     Position = employeeRequest.Position,
                     Salary = employeeRequest.Salary,
-                    CreatedOn = employeeRequest.CreatedOn,
+                    CreatedOn = DateTime.Now,
+                    //ModifiedOn = DateTime.Now,
                     CompanyId = employeeRequest.CompanyId
                 }
             );
 
             _unitOfWork.Commits_Transaction_N_Close_DbConnection_InvokeDispose();
 
-            return NoContent();
+            return CreatedAtAction("GetEmployeeById", new { id = employeeId }, employeeRequest);
         }
 
         /// <summary>
@@ -86,26 +103,20 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         [HttpPut("update-employee/{id:length(22)}")]
         public async Task<IActionResult> UpdateEmployee(string id, [FromBody] EmployeeRequest employeeRequest)
         {
-            if (id == null)
-            {
-                return BadRequest();
-            }
-
-            if (employeeRequest == null)
-            {
-                return NotFound(employeeRequest);
-            }
-
             var employeeToUpdate = await _unitOfWork.Employees.GetRecordByIdAsync(id);
 
-            if (employeeToUpdate != null)
+            if (employeeToUpdate == null)
             {
-                employeeToUpdate.Name = employeeRequest.Name;
-                employeeToUpdate.Age = employeeRequest.Age;
-                employeeToUpdate.Position = employeeRequest.Position;
-                employeeToUpdate.Salary = employeeRequest.Salary;
-                employeeToUpdate.CompanyId = employeeRequest.CompanyId;
+                throw new NotFoundException($"Employee with id: '{id}' does not existed.");
             }
+
+            employeeToUpdate.Name = employeeRequest.Name;
+            employeeToUpdate.Age = employeeRequest.Age;
+            employeeToUpdate.Position = employeeRequest.Position;
+            employeeToUpdate.Salary = employeeRequest.Salary;
+            employeeToUpdate.CreatedOn = employeeToUpdate.CreatedOn;
+            employeeToUpdate.ModifiedOn = DateTime.Now;
+            employeeToUpdate.CompanyId = employeeRequest.CompanyId;
 
             _unitOfWork.Opens_DbConnection_BeginTransaction();
 
@@ -113,7 +124,7 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
 
             _unitOfWork.Commits_Transaction_N_Close_DbConnection_InvokeDispose();
 
-            return NoContent();
+            return Ok(employeeToUpdate);
         }
 
 
@@ -124,18 +135,13 @@ namespace NET7WebAPI_OrgztnApp.API.Controllers.V1
         /// <param name="isDeleteAssociations">**Boolean**</param>
         /// <response code="201">SoftDeletes an Employee successfullly</response>
         [HttpDelete("delete-employee/{id:length(22)}")]
-        public async Task<IActionResult> DeleteEmployee(string id, [FromBody] bool deleteAssociations)
+        public async Task<IActionResult> DeleteEmployee(string id, [FromQuery] bool deleteAssociations)
         {
-            if (id == null)
-            {
-                return BadRequest();
-            }
-
             var employeeToDelete = await _unitOfWork.Employees.GetRecordByIdAsync(id);
 
             if (employeeToDelete == null)
             {
-                return NotFound(employeeToDelete);
+                throw new NotFoundException($"Employee with id: '{id}' does not existed.");
             }
 
             _unitOfWork.Opens_DbConnection_BeginTransaction();
